@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/dpk2012/url-shortener/model"
@@ -11,7 +12,6 @@ import (
 )
 
 func redirect(c *fiber.Ctx) error {
-
 	shortUrl := c.Params("redirect")
 	url, err := model.FindByUrl(shortUrl)
 	if err != nil {
@@ -19,12 +19,15 @@ func redirect(c *fiber.Ctx) error {
 			"message": "could not find url in db " + err.Error(),
 		})
 	}
-	// grab the status
-	// url.Clicked += 1
-	// err = model.UpdateUrl(url)
 
+	// Creating url_click for given short url
+	var urlClick model.UrlClick
+	urlClick.UrlID = url.ID
+	urlClick.ClickedAt = time.Now()
+
+	err = model.CreateUrlClick(urlClick)
 	if err != nil {
-		fmt.Printf("error updating: %v\n", err)
+		fmt.Printf("error creating url_click : %v\n", err)
 	}
 
 	return c.Redirect(url.LongUrl, fiber.StatusTemporaryRedirect)

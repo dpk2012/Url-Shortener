@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,9 +20,22 @@ type Config struct {
 }
 
 type Url struct {
-	ID       uint64 `json:"id" gorm:"primaryKey"`
+	ID       uint64 `json:"id"`
 	LongUrl  string `json:"longUrl" gorm:"not null;default:null"`
 	ShortUrl string `json:"shortUrl" gorm:"unique;not null"`
+}
+
+type UrlClick struct {
+	UrlID     uint64 `json:"urlId"`
+	Url       Url
+	ClickedAt time.Time `json:"clickedAt"`
+}
+
+type UrlTag struct {
+	UrlID uint64 `json:"urlId"`
+	Url   Url
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func Setup(config *Config) {
@@ -36,7 +50,7 @@ func Setup(config *Config) {
 		panic(err)
 	}
 
-	err = db.AutoMigrate(&Url{})
+	err = db.AutoMigrate(&Url{}, &UrlClick{}, &UrlTag{})
 	if err != nil {
 		fmt.Println(err)
 	}
