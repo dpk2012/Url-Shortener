@@ -1,12 +1,16 @@
 package utils
 
-import "math/rand"
+import (
+	"math/rand"
+	"time"
+)
 
-var runes = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var runes = []rune("23456789abcdefghijklmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ")
 
 func RandomURL(size int) string {
 	str := make([]rune, size)
 
+	rand.Seed(time.Now().UnixNano())
 	for i := range str {
 		str[i] = runes[rand.Intn(len(runes))]
 	}

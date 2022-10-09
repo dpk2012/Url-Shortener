@@ -11,6 +11,7 @@ import (
 )
 
 func redirect(c *fiber.Ctx) error {
+
 	shortUrl := c.Params("redirect")
 	url, err := model.FindByUrl(shortUrl)
 	if err != nil {
@@ -19,14 +20,14 @@ func redirect(c *fiber.Ctx) error {
 		})
 	}
 	// grab the status
-	url.Clicked += 1
-	err = model.UpdateUrl(url)
+	// url.Clicked += 1
+	// err = model.UpdateUrl(url)
 
 	if err != nil {
 		fmt.Printf("error updating: %v\n", err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(url.LongUrl)
+	return c.Redirect(url.LongUrl, fiber.StatusTemporaryRedirect)
 }
 
 func getAllRedirects(c *fiber.Ctx) error {
@@ -73,12 +74,20 @@ func createUrl(c *fiber.Ctx) error {
 		})
 	}
 
-	url.ShortUrl = utils.RandomURL(5)
-	err = model.CreateUrl(url)
+	if url.ShortUrl == "" {
+		url.ShortUrl = utils.RandomURL(5)
+		err = model.CreateUrl(url)
+		for err != nil {
+			url.ShortUrl = utils.RandomURL(5)
+			err = model.CreateUrl(url)
+		}
+	} else {
+		err = model.CreateUrl(url)
+	}
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "could not create url in db " + err.Error(),
+			"message": "url already exist in db " + err.Error(),
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(url)
@@ -129,12 +138,12 @@ func deleteUrl(c *fiber.Ctx) error {
 func SetupAndListen() {
 	app := fiber.New()
 
-	app.Get("/r/:redirect", redirect)
 	app.Get("/api", getAllRedirects)
 	app.Get("/api/:id", getUrl)
 	app.Post("/api", createUrl)
 	app.Patch("/api", updateUrl)
 	app.Delete("/api/:id", deleteUrl)
+	app.Get("/:redirect", redirect)
 	app.Listen((":3000"))
 
 }

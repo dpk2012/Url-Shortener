@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -20,11 +19,9 @@ type Config struct {
 }
 
 type Url struct {
-	ID        uint64    `json:"id" gorm:"primaryKey"`
-	LongUrl   string    `json:"longUrl" gorm:"not null;default:null"`
-	ShortUrl  string    `json:"shortUrl" gorm:"unique;not null"`
-	Clicked   uint64    `json:"clicked"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID       uint64 `json:"id" gorm:"primaryKey"`
+	LongUrl  string `json:"longUrl" gorm:"not null;default:null"`
+	ShortUrl string `json:"shortUrl" gorm:"unique;not null"`
 }
 
 func Setup(config *Config) {
