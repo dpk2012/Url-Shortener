@@ -63,6 +63,7 @@ func getUrl(c *fiber.Ctx) error {
 func createUrl(c *fiber.Ctx) error {
 	c.Accepts("application/json")
 
+	// Creating short url from the JSON
 	var url model.Url
 	err := c.BodyParser(&url)
 	if err != nil {
@@ -93,6 +94,32 @@ func createUrl(c *fiber.Ctx) error {
 			"message": "url already exist in db " + err.Error(),
 		})
 	}
+
+	// Creating url tag from the json
+	url, err = model.FindByUrl(url.ShortUrl)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "could not find url in db " + err.Error(),
+		})
+	}
+
+	var urlTag model.UrlTag
+	err = c.BodyParser(&urlTag)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "error parsing JSON " + err.Error(),
+		})
+	}
+
+	urlTag.UrlID = url.ID
+
+	err = model.CreateUrlTag(urlTag)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Cannot create url tag " + err.Error(),
+		})
+	}
+
 	return c.Status(fiber.StatusOK).JSON(url)
 }
 
@@ -144,6 +171,7 @@ func SetupAndListen() {
 	app.Get("/api", getAllRedirects)
 	app.Get("/api/:id", getUrl)
 	app.Post("/api", createUrl)
+	app.Post("/api/tag", createUrl)
 	app.Patch("/api", updateUrl)
 	app.Delete("/api/:id", deleteUrl)
 	app.Get("/:redirect", redirect)
